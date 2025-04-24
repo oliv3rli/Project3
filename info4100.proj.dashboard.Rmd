@@ -86,20 +86,35 @@ Go through the planning / sketching process described in the reading about dashb
 *Planning for the student dashboard*
 
 * For whom? Who will use it and what is their background?
-    + [add your answer here]
-    + [add your answer here]
+    - Target user: Individual students enrolled in the CS Business Intelligence course at Cornell (undergraduates or graduates).
+    - Background: These students have varying backgrounds in programming, SQL, and data analysis. They are familiar with iClickers and quizzes but may have limited experience interpreting analytics dashboards.
     
 * Why? What is the goal? What questions to answer?
-    + [add your answer here]
-    + [add your answer here]
+    - Goal: To help students understand their own engagement and performance in the course, identify areas for improvement, and see how they compare to class averages.
+
+    - Key questions: 
+        - How often am I attending class and participating in iClicker sessions?
+        - How am I performing on quizzes compared to the class average?
+        - How am I feeling about the course (temperature questions) relative to others?
+        - Which skills (from the skills survey) are my strengths/weaknesses compared to classmates?
+        - How has my engagement or performance changed over time?
 
 * What? What data to show and what is its structure?
-    + [add your answer here]
-    + [add your answer here]
+    - Data: 
+        - Attendance (from the quiz dataset): % sessions attended.
+        - Participation: Number of iClicker questions completed vs. total possible.
+        - Quiz Scores: Individual scores for each quiz and session.
+        - Skill Survey: Self-reported skill levels, and how those compare to class.
+        - Temperature Responses: Average temperature (wellbeing/morale) over time, and compared to peers.
+    - Structure: The dashboard will pull data for the specific student (via student_key), and class-level aggregates for comparison.
         
 * How? How will visualizations support the goal?
-    + [add your answer here]
-    + [add your answer here]
+    - Visualizations will provide quick feedback, reveal trends, and offer comparison. Each visualization will use highlighting and clear labeling to show where the student stands:
+        - Attendance & participation over time: Bar/line chart, student highlighted vs. class average.
+        - Quiz scores: Line chart or dot plot, with class average and student's own score.
+        - Skills radar/spider chart: Compare self to class median or quartiles.
+        - Temperature trend: Line or area plot for student vs. class.
+        - Summary statistics/tables: Key numbers for quick self-check.
     
 *Planning for the teacher dashboard*
 
@@ -123,6 +138,33 @@ Go through the planning / sketching process described in the reading about dashb
 
 Each dashboard should contain at least 4 data visualizations. You may include any additional summary statistics (e.g. key percentages or tables).
 
+Student Dashboard: 
+---------------------------------------------------
+|  1. Header: Welcome, Student Name/ID           |
+---------------------------------------------------
+|  2. Row 1: Summary Cards                       |
+|  - Attendance rate (%)   - Avg Quiz Score      |
+|  - Avg Temperature      - Skill Survey Total   |
+---------------------------------------------------
+|  3. Row 2: Main Visualizations                 |
+|  [A] Attendance Over Time (bar/line, student vs class) |
+|  [B] Quiz Scores by Quiz (dot plot/line, student vs class avg) |
+---------------------------------------------------
+|  4. Row 3: Additional Visualizations           |
+|  [C] Skills Radar Chart (student vs class median) |
+|  [D] Temperature Trend (line, student vs class) |
+---------------------------------------------------
+|  5. Optional: Table/List of all Quiz Attempts  |
+---------------------------------------------------
+Visualizations for Student Dashboard:
+
+  - Attendance Over Time: Line or bar chart showing % sessions attended by the student vs. class average.
+  - Quiz Performance: Line or dot plot for student's quiz scores, overlaying class average or distribution.
+  - Skills Radar/Spider Chart: Student’s self-reported skills vs. class median for each skill area.
+  - Temperature Trend: Line chart showing student’s avg “temperature” (wellbeing/confidence) per session vs. class.
+  - Summary Table: Table of quiz attempts, participation, and temperature responses per session.
+  
+  
 # Part 2: Dashboard Wire-frame Implementation
 
 This is where you generate the dashboard layout. You are given a very basic wire frame example for the dashboard below. For more information on how R Shiny Dashboards work, look at https://rstudio.github.io/shinydashboard/get_started.html and https://rstudio.github.io/shinydashboard/structure.html. You can add different types of content into a `fuidRow()`. In the starter code, there are 2 rows of content: the first has two little info boxes; the second has two larger viz boxes. You can add more rows and change what is in them as you wish. Follow the naming convention, e.g. `inst.info1` is the first info box for instructors.
