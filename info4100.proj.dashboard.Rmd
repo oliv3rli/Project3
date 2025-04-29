@@ -122,17 +122,23 @@ Each dashboard should contain at least 4 data visualizations. You may include an
 
 ## Student Dashboard:
 
-## \| 1. Header: Welcome, Student Name/ID \|
-
-|  2. Row 1: Summary Cards \|
-|  - Attendance rate (%) - Avg Quiz Score \|
-|  - Avg Temperature - Skill Survey Total \|
-
-| \| 3. Row 2: Main Visualizations \| \| [A] Attendance Over Time (bar/line, student vs class) \| \| [B] Quiz Scores by Quiz (dot plot/line, student vs class avg) \| |
-|:---------------------------------------------------|
-| \| 4. Row 3: Additional Visualizations \| \| [C] Skills Radar Chart (student vs class median) \| \| [D] Temperature Trend (line, student vs class) \| |
-
-## \| 5. Optional: Table/List of all Quiz Attempts \|
+---------------------------------------------------
+|  1. Header: Welcome, Student Name/ID           |
+---------------------------------------------------
+|  2. Row 1: Summary Cards                       |
+|  - Attendance rate (%)   - Avg Quiz Score      |
+|  - Avg Temperature      - Skill Survey Total   |
+---------------------------------------------------
+|  3. Row 2: Main Visualizations                 |
+|  [A] Attendance Over Time (bar/line, student vs class) |
+|  [B] Quiz Scores by Quiz (dot plot/line, student vs class avg) |
+---------------------------------------------------
+|  4. Row 3: Additional Visualizations           |
+|  [C] Skills Radar Chart (student vs class median) |
+|  [D] Temperature Trend (line, student vs class) |
+---------------------------------------------------
+|  5. Optional: Table/List of all Quiz Attempts  |
+---------------------------------------------------
 
 Visualizations for Student Dashboard:
 
@@ -203,10 +209,62 @@ instructor_tab <- tabItem(
 
 
 # Another empty tab
-student_dash = tabItem(
+student_dash <- tabItem(
   tabName = "student",
-  h2("Student Dashboard")
+  tabsetPanel(
+    tabPanel("Overview",
+      h2("Student Dashboard: Overview"),
+      fluidRow(
+        box(title = "Select Student", width = 4, status = "primary", solidHeader = TRUE,
+            selectInput("student_id", "Choose Student", choices = NULL) 
+        ),
+        box(title = "Summary Stats", width = 8, status = "primary", solidHeader = TRUE,
+            valueBoxOutput("attendance_box"),
+            valueBoxOutput("quiz_avg_box"),
+            valueBoxOutput("temp_avg_box"),
+            valueBoxOutput("skill_total_box")
+        )
+      )
+    ),
+    
+    tabPanel("Engagement",
+      h2("Attendance and Participation"),
+      fluidRow(
+        box(title = "Attendance Over Time", width = 6, status = "info", solidHeader = TRUE,
+            plotOutput("attendance_plot")
+        ),
+        box(title = "Clicker Participation Over Time", width = 6, status = "info", solidHeader = TRUE,
+            plotOutput("participation_plot")
+        )
+      )
+    ),
+
+    tabPanel("Performance",
+      h2("Quiz Scores"),
+      fluidRow(
+        box(title = "Quiz Scores Over Time", width = 6, status = "warning", solidHeader = TRUE,
+            plotOutput("quiz_plot")
+        ),
+        box(title = "Quiz Table", width = 6, status = "warning", solidHeader = TRUE,
+            DT::dataTableOutput("quiz_table")
+        )
+      )
+    ),
+
+    tabPanel("Skills & Confidence",
+      h2("Self-Reported Skills and Course Confidence"),
+      fluidRow(
+        box(title = "Skills Radar Chart", width = 6, status = "success", solidHeader = TRUE,
+            plotOutput("skills_radar")
+        ),
+        box(title = "Temperature Over Time", width = 6, status = "success", solidHeader = TRUE,
+            plotOutput("temperature_plot")
+        )
+      )
+    )
+  )
 )
+
 
 #######################################
 #######################################
@@ -254,6 +312,55 @@ instructor_summary <- full_data |>
   ) |>
   ungroup()
 
+
+experience <- experience %>%
+  mutate(
+    year = as.integer(year),
+    prog = as.factor(prog)
+  )
+
+# Reshape skill columns into long format for radar plots
+experience_long_skills <- experience %>%
+  pivot_longer(
+    cols = c(database_score, sql_score, programing_score,
+             stored_proc_score, etl_score, data_vis_score,
+             requirement_gather_score),
+    names_to = "skill",
+    values_to = "score"
+  )
+
+# Clean and transform quiz
+
+
+# Create summary dataset per student -----------------------------
+
+student_summary <- quiz %>%
+  group_by(student_key) %>%
+  summarise(
+    attendance_rate = mean(attended, na.rm = TRUE),
+    avg_quiz_score = mean(quiz_score, na.rm = TRUE),
+    avg_temperature = mean(avg_t_clicker, na.rm = TRUE),
+    total_sessions = n()
+  )
+
+# Join with experience data
+student_summary_full <- student_summary %>%
+  left_join(experience, by = "student_key")
+
+# for plotting time series
+quiz_clean <- quiz %>%
+  select(student_key, acad_date, quiz_number, session_number,
+         attended, total_possible_clicker, total_completed_clicker,
+         completed_q_clicker, correct_q_clicker,
+         completed_t_clicker, avg_t_clicker, quiz_score)
+
+# Store preprocessed datasets in list
+dashboard_data <- list(
+  experience = experience,
+  experience_long = experience_long_skills,
+  quiz = quiz_clean,
+  student_summary = student_summary_full
+)
 #######################################
 #######################################
 ```
@@ -275,6 +382,138 @@ server <- function(input, output, session) {
       quiz_score              = as.numeric(quiz_score),
       session_number          = as.numeric(session_number)
     )
+  
+  # —— STUDENT DASHBOARD STARTS HERE ——
+  
+  # Update dropdown choices for student selection
+  observe({
+    updateSelectInput(session, "student_id",
+                      choices = sort(unique(dashboard_data$student_summary$student_key)))
+  })
+
+  # Filtered data for selected student
+  student_data <- reactive({
+    req(input$student_id)
+    dashboard_data$quiz %>% filter(student_key == input$student_id)
+  })
+
+  student_summary <- reactive({
+    req(input$student_id)
+    dashboard_data$student_summary %>% filter(student_key == input$student_id)
+  })
+
+  student_skills <- reactive({
+    req(input$student_id)
+    dashboard_data$experience_long %>% filter(student_key == input$student_id)
+  })
+
+  # Value boxes
+  output$attendance_box <- renderValueBox({
+    valueBox(
+      paste0(round(student_summary()$attendance_rate * 100, 1), "%"),
+      subtitle = "Attendance Rate",
+      icon = icon("calendar-check"),
+      color = "blue"
+    )
+  })
+
+  output$quiz_avg_box <- renderValueBox({
+    valueBox(
+      round(student_summary()$avg_quiz_score, 1),
+      subtitle = "Average Quiz Score",
+      icon = icon("pen"),
+      color = "green"
+    )
+  })
+
+  output$temp_avg_box <- renderValueBox({
+    valueBox(
+      round(student_summary()$avg_temperature, 1),
+      subtitle = "Average Temperature",
+      icon = icon("thermometer-half"),
+      color = "yellow"
+    )
+  })
+
+  output$skill_total_box <- renderValueBox({
+    valueBox(
+      student_summary()$skill_survey_score,
+      subtitle = "Total Skill Score",
+      icon = icon("chart-bar"),
+      color = "teal"
+    )
+  })
+
+  # Plots
+  output$attendance_plot <- renderPlot({
+    student_data() %>%
+      ggplot(aes(x = acad_date, y = attended)) +
+      geom_point() +
+      geom_line() +
+      labs(title = "Attendance Over Time", x = "Date", y = "Attended (1 = Yes)") +
+      theme_minimal()
+  })
+
+  output$participation_plot <- renderPlot({
+    student_data() %>%
+      ggplot(aes(x = acad_date, y = total_completed_clicker)) +
+      geom_line() +
+      geom_point() +
+      labs(title = "Clicker Participation Over Time", x = "Date", y = "Completed Clicker Questions") +
+      theme_minimal()
+  })
+
+  output$quiz_plot <- renderPlot({
+    student_data() %>%
+      ggplot(aes(x = acad_date, y = quiz_score)) +
+      geom_line(color = "darkorange") +
+      geom_point() +
+      labs(title = "Quiz Scores Over Time", x = "Date", y = "Quiz Score") +
+      theme_minimal()
+  })
+
+  output$quiz_table <- DT::renderDataTable({
+    student_data() %>%
+      select(acad_date, session_number, quiz_number, quiz_score,
+             total_possible_clicker, total_completed_clicker,
+             completed_q_clicker, correct_q_clicker,
+             completed_t_clicker, avg_t_clicker) %>%
+      rename(
+        Date = acad_date,
+        Session = session_number,
+        Quiz = quiz_number,
+        Score = quiz_score,
+        TotalClickerQs = total_possible_clicker,
+        Completed = total_completed_clicker,
+        QuizQs = completed_q_clicker,
+        Correct = correct_q_clicker,
+        TempQs = completed_t_clicker,
+        AvgTemp = avg_t_clicker
+      )
+  })
+
+  output$skills_radar <- renderPlot({
+    student_skills() %>%
+      ggplot(aes(x = skill, y = score, group = 1)) +
+      geom_line() +
+      geom_point(size = 2) +
+      ylim(0, 5) +
+      labs(title = "Self-Reported Skill Levels", x = NULL, y = "Skill Score (0–5)") +
+      theme_minimal() +
+      theme(axis.text.x = element_text(angle = 45, hjust = 1))
+  })
+
+  output$temperature_plot <- renderPlot({
+    student_data() %>%
+      ggplot(aes(x = acad_date, y = avg_t_clicker)) +
+      geom_line(color = "tomato") +
+      geom_point() +
+      labs(title = "Temperature (Confidence) Over Time", x = "Date", y = "Avg Temperature (0–5)") +
+      theme_minimal()
+  })
+
+  # —— END STUDENT DASHBOARD ——
+  
   
   # —— 4.2 INFOBOX —— 
 
@@ -340,7 +579,7 @@ server <- function(input, output, session) {
   
   # —— 4.4 At-Risk Students Table —— 
   output$inst.table1 <- DT::renderDataTable({
-    # 计算 25% 分位点
+    # calculate the  25% quartile
     att_th <- quantile(full_data$attended, 0.25, na.rm = TRUE)
     score_th <- quantile(full_data$quiz_score, 0.25, na.rm = TRUE)
     
@@ -397,7 +636,7 @@ dside = dashboardSidebar(
 dbody = dashboardBody(
     tabItems(
       student_dash,
-      instructor_dash
+      instructor_tab
     )
 )
 
