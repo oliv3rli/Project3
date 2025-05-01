@@ -28,7 +28,7 @@ You offer to build a prototype of a dashboard using her clicker data: this is a 
 The **experience dataset** contains one record per student who completed the CS course between 2016-2018. There are two sources to this dataset: Faculty Center and a Skills Survey (administered via the Blackboard LMS) where students self reported their skill level for various skills the first week of class. This data has been de-identified. Name, netid, emplid, major have all been removed and replaced with a unique numeric identifier. Note that not all students completed the skills survey, they will have null values for the survey result fields.
 
 | Attribute Name | Data Type | Definition |
-|---------------|---------------|-----------------------------------------|
+|-----------------|-----------------|---------------------------------------|
 | student_key | numeric Unique key | Assigned as part of de-identification process. Uniquely identifies student records for this data set only. |
 | year | numeric | Four digit year student was enrolled in BI Class. |
 | prog | character Values (GRAD, UGRAD) | Indicates whether the student was a graduate or undergraduate student when they were enrolled in BI course. |
@@ -44,7 +44,7 @@ The **experience dataset** contains one record per student who completed the CS 
 The **quiz dataset** contains one record per student per class session held where iClickers were used. Sources used in the creation of this data set include: iClicker session xml files, Blackboard gradebook (for quiz scores), and the Blackboard class schedule (used to map iClicker session to related quiz scores). Note that in some cases there are multiple iClicker sessions / lectures associated with a single quiz. This dataset may be joined to the experience dataset by the student_key field.
 
 | Attribute Name | Data Type | Definition |
-|---------------|---------------|-----------------------------------------|
+|-----------------|-----------------|---------------------------------------|
 | Acad_date_key | numeric | Date key in the form of YYYYMMDD indicating the date the class session was held. |
 | student_key | numeric | Unique identifier for students who took BI class 2016-2018. This key is the primary key for the experience_data file. |
 | year | numeric | Four digit year class session was held. |
@@ -116,29 +116,59 @@ Go through the planning / sketching process described in the reading about dashb
         -   Temperature trend: Line or area plot for student vs. class.
         -   Summary statistics/tables: Key numbers for quick self-check.
 
+*Planning for the instructor dashboard*
+
+-   For whom? Who will use it and what is their background?
+    -   Target user: Instructor of the CS Business Intelligence course at Cornell
+    -   Background: The instructor is a college professor at Cornell who uses iClickers in her class for student engagement. She has been teaching the class for a few years and may not have a lot of experience in making/interpreting dashboards.
+-   Why? What is the goal? What questions to answer?
+    -   Goal: To help the instructor get an overall understanding of the class characteristics and how students as a whple are performing and engaging in her class. This summative information may be helpful for her for adjusting teaching strategies to better help her students.
+
+    -   Key questions:
+
+        -   What are the attendance rates for each class session?
+        -   What is the spread of quiz scores across the classroom?
+        -   How confident are students on the topics covered in each class session?
+        -   Which students may need extra attention/assistance in the course?
+-   What? What data to show and what is its structure?
+    -   Engagement Over Time: Average \# of clicker questions completed for each class date plotted as a line graph over all dates class was held
+    -   Quiz Score Distribution: Distribution of all quiz scores shown on a histogram
+    -   Average Temperature by Session: Average of the temperature responses for each session number
+    -   At Risk Students: Highlight students with a low attendance rate or avg quiz score, displayed as a table
+-   How? How will visualizations support the goal?
+    -   Visualizations will provide simple summary of the class statistics, showing how students are performing and engaging in class.
+        -   Engagement Over Time: Line graph, Date vs Avg Clicker Questions
+            -   visualizes engagement of class
+        -   Quiz Score Distribution: Histogram, Quiz Score vs Frequency
+            -   visualizes performance of class
+        -   Average Temperature by Session: Line graph, Session Number vs Avg Temperature
+            -   visualizes performance of class/how class feels about the content
+        -   At Risk Students: Table, With student key, program, attendance rate, and avg quiz score
+            -   highlights students who may need extra help
+
 **Question 2:** Based on your plan above, make a sketch of what the dashboard would look like. See this week's readings for examples. Be detailed about what kinds of data points and visualizations you want to see in different parts of the page. Consider the user experience and how you should position more general information compared to more specific information, and where you may need some additional explanation to help the viewer understand a graphic, for example. In your sketch, it is useful to give labels to different objects, because in the steps below you can split up work between team members and the labels will help you connect the UI with the data objects. Show your sketches in section to get feedback from the teaching team.
 
 Each dashboard should contain at least 4 data visualizations. You may include any additional summary statistics (e.g. key percentages or tables).
 
 ## Student Dashboard:
 
----------------------------------------------------
-|  1. Header: Welcome, Student Name/ID           |
----------------------------------------------------
-|  2. Row 1: Summary Cards                       |
-|  - Attendance rate (%)   - Avg Quiz Score      |
-|  - Avg Temperature      - Skill Survey Total   |
----------------------------------------------------
-|  3. Row 2: Main Visualizations                 |
-|  [A] Attendance Over Time (bar/line, student vs class) |
-|  [B] Quiz Scores by Quiz (dot plot/line, student vs class avg) |
----------------------------------------------------
-|  4. Row 3: Additional Visualizations           |
-|  [C] Skills Radar Chart (student vs class median) |
-|  [D] Temperature Trend (line, student vs class) |
----------------------------------------------------
-|  5. Optional: Table/List of all Quiz Attempts  |
----------------------------------------------------
+-------------------------------------------------------------------
+ |  1. Header: Welcome, Student Name/ID                           |
+-------------------------------------------------------------------
+ |  2. Row 1: Summary Cards                                       |
+ |  - Attendance rate (%)   - Avg Quiz Score                      |
+ |  - Avg Temperature      - Skill Survey Total                   |
+-------------------------------------------------------------------
+ |  3. Row 2: Main Visualizations                                 |
+ |  [A] Attendance Over Time (bar/line, student vs class)         |
+ |  [B] Quiz Scores by Quiz (dot plot/line, student vs class avg) |
+-------------------------------------------------------------------
+ |  4. Row 3: Additional Visualizations                           |  
+ |  [C] Skills Radar Chart (student vs class median)              |
+ |  [D] Temperature Trend (line, student vs class)                |
+-------------------------------------------------------------------
+ |  5. Optional: Table/List of all Quiz Attempts                  |  
+-------------------------------------------------------------------
 
 Visualizations for Student Dashboard:
 
@@ -147,6 +177,28 @@ Visualizations for Student Dashboard:
 -   Skills Radar/Spider Chart: Student’s self-reported skills vs. class median for each skill area.
 -   Temperature Trend: Line chart showing student’s avg “temperature” (wellbeing/confidence) per session vs. class.
 -   Summary Table: Table of quiz attempts, participation, and temperature responses per session.
+
+
+
+## Instructor Dashboard:
+
+-------------------------------------------------------------------
+ |  1. Header: Instructor Dashboard                               |
+-------------------------------------------------------------------
+ |  2. Row 1: Summary Cards                                       |
+ |  - Total Students       - Avg Attendance                       |
+ |  - Avg Quiz Score                                              |
+-------------------------------------------------------------------
+ |  3. Row 2: Plots                                               |
+ |  [A] Engagement Over Time (line plot)                          |
+ |  [B] Quiz Distribution (histogram)                             |
+ |  [c] Avg Temperature by Session (line plot)                    |
+-------------------------------------------------------------------
+ |  4. Row 3: Table                                               |  
+ |  [D] At Risk Students (table:                                  |
+ |      Student Key; Program; Attendance Rate; Avg Quiz Score)    |
+-------------------------------------------------------------------
+
 
 # Part 2: Dashboard Wire-frame Implementation
 
@@ -586,8 +638,8 @@ server <- function(input, output, session) {
     at_risk <- full_data |>
       group_by(student_key, prog) |>
       summarise(
-        attendance_rate = mean(attended, na.rm = TRUE),
-        avg_quiz_score  = mean(quiz_score, na.rm = TRUE),
+        attendance_rate = round(mean(attended, na.rm = TRUE),4),
+        avg_quiz_score  = round(mean(quiz_score, na.rm = TRUE),2),
         .groups = "drop"
       ) |>
       filter(
