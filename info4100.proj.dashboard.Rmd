@@ -730,20 +730,20 @@ shinyApp(ui, server)
 *Reflection for the student dashboard*
 
 -   What do you like about it?
-    -   [add your answer here]
+    -   The tabbed layout allows easy navigation across different dimensions of learning. We designed the time-series plots that overlay points and lines to help students quickly spot trends and gaps over the semester.
 -   What would you change or add to it if you had more time?
-    -   [add your answer here]
+    -   If we had more time, we would integrate percentile gauges or sparklines that compare a student’s metrics to class averages. It will help students to know what grades they possibly have and encourage them to work harder. We’d also build a drill-down feature on the Performance tab so students can click into individual quizzes for question-level feedback or topic-level strengths and weaknesses.
 -   What was the biggest challenge you faced? How did you address it?
-    -   [add your answer here]
+    -   The biggest challenge we had was handling reactive data updates when a different student was selected—especially in sessions where values were missing. We addressed this by using req() to ensure render functions only fire once a valid student is chosen, and by always summarizing with na.rm = TRUE so charts gracefully skip over any NA values. This approach kept the dashboard responsive and error-free.
 
 *Reflection for the teacher dashboard*
 
 -   What do you like about it?
-    -   [add your answer here]
+    -   The dashboard displays the most important class‐level metrics in large info boxes, so the instructor can see overall class conditions rapidly. The four plots contains the information of engagement trends, score distributions, attendance vs. performance relationships, and session‐by‐session sentiment, giving a well–rounded view of how the class behaves over time. The consistent color‐coded boxes and clear labels help guide the eye from one section to the next.
 -   What would you change or add to it if you had more time?
-    -   [add your answer here]
+    -   If we had more time, we would add interactive filters so the instructor could slice by semester, year, or program. We’d also include drill-down links on the “At-Risk Students” table to pop up individual profiles or sparkline mini-charts. A predictive “early-warning” module would make the dashboard more actionable. Instructor can help students at risks and encourage them to put more effort on this course.
 -   What was the biggest challenge you faced? How did you address it?
-    -   [add your answer here]
+    -   The hardest part was balancing responsiveness with visualizations: summarizing 2+ years of per-session, per-student data on every render was slowing down the app. We solved this by precomputing aggregated summary tables outside of each renderPlot(), then caching them in reactive values so that the heavy work only runs once at startup or when the underlying data changes. This improved load times and made the dashboard easy to read.
 
 # Self-reflection
 
