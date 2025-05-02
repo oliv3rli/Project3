@@ -255,6 +255,15 @@ instructor_tab <- tabItem(
       width      = 12,
       DT::dataTableOutput("inst.table1")
     )
+  ),
+  
+  fluidRow(
+    box(
+      title      = "Skill Survey Score Distribution",
+      status     = "primary", solidHeader = TRUE,
+      width      = 12,
+      plotOutput("inst.plot5", height = 250)
+    )
   )
 )
 
@@ -658,6 +667,19 @@ server <- function(input, output, session) {
       options  = list(pageLength = 5, autoWidth = TRUE),
       rownames = FALSE
     )
+  })
+  
+  output$inst.plot5 <- renderPlot({
+    full_data %>%
+      filter(!is.na(skill_survey_score)) %>%
+      ggplot(aes(x = skill_survey_score)) +
+        geom_histogram(binwidth = 0.5, fill = "blue", color = "white") +
+        labs(
+          title = "Skill Survey Score Distribution",
+          x     = "Skill Survey Score",
+          y     = "Count"
+        ) +
+        theme_minimal()
   })
 }
 ```
